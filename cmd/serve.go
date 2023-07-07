@@ -1,0 +1,23 @@
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/comfyprog/allnews/config"
+	"github.com/spf13/cobra"
+)
+
+func makeServeCmd(config config.Config) *cobra.Command {
+	var withCollect bool
+	cmd := &cobra.Command{
+		Use:   "serve",
+		Short: "Start http server",
+		Long:  "Starts http server on the address and port defined in the config file",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("TODO: serve (with-collect: %v)\n", withCollect)
+		},
+	}
+
+	cmd.PersistentFlags().BoolVarP(&withCollect, "with-collect", "c", false, "perform continuous feed collection in background")
+	return cmd
+}

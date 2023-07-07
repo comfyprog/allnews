@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"testing"
@@ -25,7 +25,7 @@ sources:
     update: 1800s
 `
 
-	config, err := parseConfig([]byte(configStr))
+	config, err := parse([]byte(configStr))
 	assert.Nil(t, err)
 	assert.Equal(t, "postgres://postgres:postgres@localhost:5432/example?sslmode=disable", config.DbConnString)
 	assert.Equal(t, "localhost:8000", config.ListenAddr)

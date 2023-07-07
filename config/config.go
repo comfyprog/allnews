@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"os"
@@ -16,23 +16,30 @@ type SourceConfig struct {
 }
 
 type Config struct {
+	Version      string         `yaml:"-"`
 	DbConnString string         `yaml:"db"`
 	ListenAddr   string         `yaml:"listen_addr"`
 	Sources      []SourceConfig `yaml:"sources,flow"`
 }
 
-func parseConfig(configBytes []byte) (Config, error) {
+func parse(configBytes []byte) (Config, error) {
 	var config Config
 
 	err := yaml.Unmarshal(configBytes, &config)
 	return config, err
 }
 
-func getConfig(filename string) (Config, error) {
+func Get(filename string, appVersion string) (Config, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return Config{}, err
 	}
 
-	return parseConfig(data)
+	config, err := parse(data)
+	if err != nil {
+		return config, err
+	}
+
+	config.Version = appVersion
+	return config, nil
 }
