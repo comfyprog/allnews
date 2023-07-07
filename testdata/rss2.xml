@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="https://www.w3.org/2005/Atom"><channel><title>ТАСС</title>
+<description>ИНФОРМАЦИОННОЕ АГЕНТСТВО РОССИИ ТАСС</description>
+<language>ru-ru</language>
+<link><![CDATA[https://tass.ru]]></link>
+<copyright>ТАСС</copyright>
+<image><url><![CDATA[https://tass.ru/i/rss/logo.png]]></url>
+<title>ТАСС</title>
+<link><![CDATA[https://tass.ru]]></link>
+</image>
+<atom:link href="https://tass.ru/rss/v2.xml" rel="self" type="application/rss+xml"/>
+<item><title>Глава МИД Австрии напомнил об угрозе кассетных боеприпасов для мирного населения</title>
+<link><![CDATA[https://tass.ru/mezhdunarodnaya-panorama/18217905]]></link>
+<guid><![CDATA[https://tass.ru/mezhdunarodnaya-panorama/18217905]]></guid>
+<pubDate>Fri, 07 Jul 2023 13:56:32 +0300</pubDate>
+<description>По словам Александера Шалленберга, Запад должен оказывать Киеву "правильную поддержку" и думать о том, какой "сигнал он посылает", принимая какое-либо решение</description>
+<category>Международная панорама</category>
+</item>
+<item><title>Причиной взрыва на заводе в Самарской области могло стать нарушение техники безопасности</title>
+<link><![CDATA[https://tass.ru/proisshestviya/18217879]]></link>
+<guid><![CDATA[https://tass.ru/proisshestviya/18217879]]></guid>
+<pubDate>Fri, 07 Jul 2023 13:55:01 +0300</pubDate>
+<category>Происшествия</category>
+</item>
+<item><title>Сахарный завод под Белгородом запустил экскурсии для знакомства туристов с производством</title>
+<link><![CDATA[https://tass.ru/v-strane/18217817]]></link>
+<guid><![CDATA[https://tass.ru/v-strane/18217817]]></guid>
+<pubDate>Fri, 07 Jul 2023 13:53:55 +0300</pubDate>
+<description>Предприятие разработало две программы, направленные на профориентацию молодежи: "Тайна сахарного кристалла" - для школьников и "Русагро - территория развития" - для студентов</description>
+<category>Общество</category>
+<category>В стране</category>
+</item>
+</channel>
+</rss>
