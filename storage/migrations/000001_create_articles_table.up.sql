@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS articles (
+    id SERIAL PRIMARY KEY,
+    resource_name VARCHAR(50) NOT NULL,
+    url VARCHAR(500) NOT NULL UNIQUE,
+    title VARCHAR(150) NOT NULL,
+    description VARCHAR(1024),
+    published TIMESTAMP WITH TIME ZONE NOT NULL,
+    feed_item JSONB NOT NULL
+);

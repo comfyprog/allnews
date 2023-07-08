@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/comfyprog/allnews/config"
+	"github.com/comfyprog/allnews/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +12,7 @@ func makeMigragteDbCmd(config config.Config) *cobra.Command {
 		Short: "Apply database migrations",
 		Long:  "migratedb command tries to setup the database to be usable with this version of allnews",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("TODO: migratedb")
+			storage.Migrate(config.DbConnString)
 		},
 	}
 }

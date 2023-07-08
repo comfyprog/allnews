@@ -15,6 +15,7 @@ func makeCollectCmd(config config.Config) *cobra.Command {
 		Long:  "Collects feeds defined in config file and stores them in the database",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf("TODO: collect (continuously: %v), args: %v\n", continuous, args)
+			fmt.Printf("%+v\n", config)
 		},
 	}
 
