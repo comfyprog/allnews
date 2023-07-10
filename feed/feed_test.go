@@ -1,4 +1,4 @@
-package main
+package feed
 
 import (
 	"net/http"
@@ -45,7 +45,7 @@ func TestGetFeed(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(test.file, func(t *testing.T) {
-			feed, err := getFeed(test.url, time.Second)
+			feed, err := GetFeed(test.url, time.Second)
 			assert.Nil(t, err)
 			assert.NotNil(t, feed)
 			assert.Len(t, feed.Items, test.numItems)
@@ -65,7 +65,7 @@ func TestGetFeedTimeout(t *testing.T) {
 		w.Write(data)
 	}))
 
-	feed, err := getFeed(srv.URL, time.Millisecond)
+	feed, err := GetFeed(srv.URL, time.Millisecond)
 	assert.NotNil(t, err)
 	assert.Nil(t, feed)
 }
@@ -76,7 +76,7 @@ func TestGetFeedUnparseable(t *testing.T) {
 		w.Write([]byte("null"))
 	}))
 
-	feed, err := getFeed(srv.URL, time.Millisecond)
+	feed, err := GetFeed(srv.URL, time.Millisecond)
 	assert.NotNil(t, err)
 	assert.Nil(t, feed)
 }
@@ -92,19 +92,19 @@ func TestExtractArticles(t *testing.T) {
 		w.Write(data)
 	}))
 
-	feed, err := getFeed(srv.URL, time.Millisecond)
+	feed, err := GetFeed(srv.URL, time.Millisecond)
 	assert.Nil(t, err)
 	assert.NotNil(t, feed)
 
-	articles, err := extractArticles(feed, "site1")
+	articles, err := ExtractArticles(feed, "site1")
 	assert.Nil(t, err)
 
 	assert.Len(t, articles, len(feed.Items))
 
 	for _, a := range articles {
-		t.Run(a.url, func(t *testing.T) {
-			assert.Equal(t, "site1", a.resource)
-			assert.Greater(t, len(a.item), 0)
+		t.Run(a.Url, func(t *testing.T) {
+			assert.Equal(t, "site1", a.Resource)
+			assert.Greater(t, len(a.ItemJSON), 0)
 		})
 	}
 
