@@ -150,8 +150,40 @@ func TestProcessFeeds(t *testing.T) {
 
 	storage := newTestStorage()
 
-	ProcessFeeds(context.Background(), feedGroups, storage)
+	ProcessFeeds(context.Background(), feedGroups, storage, false)
 
 	assert.Len(t, storage.articles, 2)
+
+}
+
+func TestProcessFeedsContinuously(t *testing.T) {
+	data, err := os.ReadFile("./testdata/rss1.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "text/xml;charset=UTF-8")
+		w.Write(data)
+	}))
+
+	feedGroups := map[string][]config.SourceConfig{
+		"testgroup": []config.SourceConfig{{
+			Name:         "test",
+			FeedUrl:      srv.URL,
+			Timeout:      time.Second,
+			UpdatePeriod: time.Millisecond * 100,
+			Country:      "us",
+		}},
+	}
+
+	storage := newTestStorage()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*150)
+	defer cancel()
+
+	ProcessFeeds(ctx, feedGroups, storage, true)
+
+	assert.Len(t, storage.articles, 4)
 
 }

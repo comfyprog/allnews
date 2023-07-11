@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/comfyprog/allnews/config"
@@ -55,7 +56,7 @@ type ArticleSaver interface {
 	SaveArticles(context.Context, []Article) error
 }
 
-func processFeed(feedConfig config.SourceConfig, storage ArticleSaver) {
+func processFeed(ctx context.Context, feedConfig config.SourceConfig, storage ArticleSaver) {
 	log.Printf("Getting %s", feedConfig.FeedUrl)
 	feed, err := GetFeed(feedConfig.FeedUrl, feedConfig.Timeout)
 	if err != nil {
@@ -69,18 +70,40 @@ func processFeed(feedConfig config.SourceConfig, storage ArticleSaver) {
 		return
 	}
 
-	err = storage.SaveArticles(context.Background(), articles)
+	err = storage.SaveArticles(ctx, articles)
 	if err != nil {
 		log.Printf("Error: %v", err)
 	}
 }
 
-func ProcessFeeds(ctx context.Context, feedGroups map[string][]config.SourceConfig, storage ArticleSaver) {
+func ProcessFeeds(ctx context.Context, feedGroups map[string][]config.SourceConfig, storage ArticleSaver, continuous bool) {
+	wg := sync.WaitGroup{}
+
 	for groupName := range feedGroups {
 		log.Printf("Processing feed group `%s`", groupName)
 		for _, feedConfig := range feedGroups[groupName] {
-			processFeed(feedConfig, storage)
-		}
+			wg.Add(1)
+			go func(feedConfig config.SourceConfig) {
+				defer wg.Done()
+				processFeed(ctx, feedConfig, storage)
 
+				if continuous {
+					ticker := time.NewTicker(feedConfig.UpdatePeriod)
+					defer ticker.Stop()
+
+					for {
+						select {
+						case <-ctx.Done():
+							return
+						case <-ticker.C:
+							processFeed(ctx, feedConfig, storage)
+						}
+					}
+				}
+
+			}(feedConfig)
+		}
 	}
+
+	wg.Wait()
 }
