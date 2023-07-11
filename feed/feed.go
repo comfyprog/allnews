@@ -3,8 +3,10 @@ package feed
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
+	"github.com/comfyprog/allnews/config"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -47,4 +49,38 @@ func ExtractArticles(feed *gofeed.Feed, resource string) ([]Article, error) {
 	}
 
 	return articles, nil
+}
+
+type ArticleSaver interface {
+	SaveArticles(context.Context, []Article) error
+}
+
+func processFeed(feedConfig config.SourceConfig, storage ArticleSaver) {
+	log.Printf("Getting %s", feedConfig.FeedUrl)
+	feed, err := GetFeed(feedConfig.FeedUrl, feedConfig.Timeout)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return
+	}
+
+	articles, err := ExtractArticles(feed, feedConfig.Name)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return
+	}
+
+	err = storage.SaveArticles(context.Background(), articles)
+	if err != nil {
+		log.Printf("Error: %v", err)
+	}
+}
+
+func ProcessFeeds(ctx context.Context, feedGroups map[string][]config.SourceConfig, storage ArticleSaver) {
+	for groupName := range feedGroups {
+		log.Printf("Processing feed group `%s`", groupName)
+		for _, feedConfig := range feedGroups[groupName] {
+			processFeed(feedConfig, storage)
+		}
+
+	}
 }

@@ -1,12 +1,14 @@
 package feed
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/comfyprog/allnews/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -107,5 +109,49 @@ func TestExtractArticles(t *testing.T) {
 			assert.Greater(t, len(a.ItemJSON), 0)
 		})
 	}
+
+}
+
+type testStorage struct {
+	articles []Article
+}
+
+func newTestStorage() *testStorage {
+	s := testStorage{}
+	s.articles = make([]Article, 0)
+	return &s
+}
+
+func (s *testStorage) SaveArticles(ctx context.Context, articles []Article) error {
+	s.articles = append(s.articles, articles...)
+	return nil
+}
+
+func TestProcessFeeds(t *testing.T) {
+	data, err := os.ReadFile("./testdata/rss1.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "text/xml;charset=UTF-8")
+		w.Write(data)
+	}))
+
+	feedGroups := map[string][]config.SourceConfig{
+		"testgroup": []config.SourceConfig{{
+			Name:         "test",
+			FeedUrl:      srv.URL,
+			Timeout:      time.Second,
+			UpdatePeriod: time.Second,
+			Country:      "us",
+		}},
+	}
+
+	storage := newTestStorage()
+
+	ProcessFeeds(context.Background(), feedGroups, storage)
+
+	assert.Len(t, storage.articles, 2)
 
 }
