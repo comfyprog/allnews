@@ -3,6 +3,7 @@ package feed
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -18,6 +19,10 @@ type Article struct {
 	Published   time.Time
 	Description string
 	ItemJSON    string
+}
+
+func (a Article) String() string {
+	return fmt.Sprintf("%s [%s]: %s %s", a.Resource, a.Url, a.Published, a.Title)
 }
 
 func GetFeed(url string, timeout time.Duration) (*gofeed.Feed, error) {
