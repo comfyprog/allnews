@@ -25,9 +25,9 @@ func (a Article) String() string {
 	return fmt.Sprintf("%s [%s]: %s %s", a.Resource, a.Url, a.Published, a.Title)
 }
 
-func GetFeed(url string, timeout time.Duration) (*gofeed.Feed, error) {
+func GetFeed(ctx context.Context, url string, timeout time.Duration) (*gofeed.Feed, error) {
 	parser := gofeed.NewParser()
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	return parser.ParseURLWithContext(url, ctx)
@@ -63,7 +63,7 @@ type ArticleSaver interface {
 
 func processFeed(ctx context.Context, feedConfig config.SourceConfig, storage ArticleSaver) {
 	log.Printf("Getting %s", feedConfig.FeedUrl)
-	feed, err := GetFeed(feedConfig.FeedUrl, feedConfig.Timeout)
+	feed, err := GetFeed(ctx, feedConfig.FeedUrl, feedConfig.Timeout)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return
@@ -99,6 +99,7 @@ func ProcessFeeds(ctx context.Context, feedGroups map[string][]config.SourceConf
 					for {
 						select {
 						case <-ctx.Done():
+							log.Printf("%s collect loop terminating", feedConfig.Name)
 							return
 						case <-ticker.C:
 							processFeed(ctx, feedConfig, storage)

@@ -47,7 +47,7 @@ func TestGetFeed(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(test.file, func(t *testing.T) {
-			feed, err := GetFeed(test.url, time.Second)
+			feed, err := GetFeed(context.Background(), test.url, time.Second)
 			assert.Nil(t, err)
 			assert.NotNil(t, feed)
 			assert.Len(t, feed.Items, test.numItems)
@@ -67,7 +67,7 @@ func TestGetFeedTimeout(t *testing.T) {
 		w.Write(data)
 	}))
 
-	feed, err := GetFeed(srv.URL, time.Millisecond)
+	feed, err := GetFeed(context.Background(), srv.URL, time.Millisecond)
 	assert.NotNil(t, err)
 	assert.Nil(t, feed)
 }
@@ -78,7 +78,7 @@ func TestGetFeedUnparseable(t *testing.T) {
 		w.Write([]byte("null"))
 	}))
 
-	feed, err := GetFeed(srv.URL, time.Millisecond)
+	feed, err := GetFeed(context.Background(), srv.URL, time.Millisecond)
 	assert.NotNil(t, err)
 	assert.Nil(t, feed)
 }
@@ -94,7 +94,7 @@ func TestExtractArticles(t *testing.T) {
 		w.Write(data)
 	}))
 
-	feed, err := GetFeed(srv.URL, time.Millisecond)
+	feed, err := GetFeed(context.Background(), srv.URL, time.Millisecond)
 	assert.Nil(t, err)
 	assert.NotNil(t, feed)
 

@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/comfyprog/allnews/config"
 	"github.com/comfyprog/allnews/feed"
@@ -26,6 +29,13 @@ func (*dryRunner) SaveArticles(ctx context.Context, articles []feed.Article) err
 		fmt.Printf("%s\n", a.String())
 	}
 	return nil
+}
+
+func handleGracefulShutdown(f context.CancelFunc) {
+	exit := make(chan os.Signal)
+	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+	<-exit
+	f()
 }
 
 func collect(appConfig config.Config, names []string, dryRun bool, continuous bool) {
@@ -58,7 +68,13 @@ func collect(appConfig config.Config, names []string, dryRun bool, continuous bo
 			log.Fatal(err)
 		}
 	}
-	feed.ProcessFeeds(context.Background(), feedGroups, articleStorage, continuous)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go handleGracefulShutdown(cancel)
+
+	feed.ProcessFeeds(ctx, feedGroups, articleStorage, continuous)
+
 }
 
 func makeCollectCmd(appConfig config.Config) *cobra.Command {
