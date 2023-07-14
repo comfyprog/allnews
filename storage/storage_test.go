@@ -145,3 +145,69 @@ func TestSaveArticlesWithConflictingFields(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 2, count)
 }
+
+func TestGetArticles(t *testing.T) {
+	storage, err := NewPostgresStorage(connStr)
+	assert.Nil(t, err)
+
+	err = clearDb()
+	assert.Nil(t, err)
+
+	articles := []feed.Article{
+		{Resource: "resource1", Url: "google..com", Title: "title1", Published: time.Now(), Description: "description1", ItemJSON: "{}"},
+		{Resource: "resource2", Url: "yahoo.com", Title: "title2", Published: time.Now().Add(time.Hour), Description: "description2", ItemJSON: "{}"},
+		{Resource: "resource3", Url: "bing.com", Title: "title3", Published: time.Now().Add(time.Hour * -25), Description: "description3", ItemJSON: "{}"},
+	}
+
+	ctx := context.Background()
+
+	err = storage.SaveArticles(ctx, articles)
+	assert.Nil(t, err)
+
+	t.Run("with default params", func(t *testing.T) {
+		retrived, err := storage.GetArticles(ctx)
+		assert.Nil(t, err)
+		assert.Len(t, retrived, 2)
+		assert.Equal(t, "title2", retrived[0].Title)
+		assert.Equal(t, "title1", retrived[1].Title)
+	})
+
+	t.Run("with filter", func(t *testing.T) {
+		retrived, err := storage.GetArticles(ctx, WithFilter("title2"))
+		assert.Nil(t, err)
+		assert.Len(t, retrived, 1)
+		assert.Equal(t, "title2", retrived[0].Title)
+	})
+
+	t.Run("with date start", func(t *testing.T) {
+		retrived, err := storage.GetArticles(ctx, WithDateStart(time.Now().Add(time.Hour*-26).Format(time.RFC3339)))
+		assert.Nil(t, err)
+		assert.Len(t, retrived, 3)
+		assert.Equal(t, "title2", retrived[0].Title)
+		assert.Equal(t, "title1", retrived[1].Title)
+		assert.Equal(t, "title3", retrived[2].Title)
+	})
+
+	t.Run("with date end", func(t *testing.T) {
+		retrived, err := storage.GetArticles(ctx,
+			WithDateStart(time.Now().Add(time.Hour*-26).Format(time.RFC3339)),
+			WithDateEnd(time.Now().Add(time.Hour*-24).Format(time.RFC3339)))
+		assert.Nil(t, err)
+		assert.Len(t, retrived, 1)
+		assert.Equal(t, "title3", retrived[0].Title)
+	})
+
+	t.Run("with limit", func(t *testing.T) {
+		retrived, err := storage.GetArticles(ctx, WithLimit(1))
+		assert.Nil(t, err)
+		assert.Len(t, retrived, 1)
+		assert.Equal(t, "title2", retrived[0].Title)
+	})
+
+	t.Run("with offset", func(t *testing.T) {
+		retrived, err := storage.GetArticles(ctx, WithLimit(1), WithOffset(1))
+		assert.Nil(t, err)
+		assert.Len(t, retrived, 1)
+		assert.Equal(t, "title1", retrived[0].Title)
+	})
+}
