@@ -13,12 +13,12 @@ import (
 )
 
 type Article struct {
-	Resource    string
-	Url         string
-	Title       string
-	Published   time.Time
-	Description string
-	ItemJSON    string
+	Resource    string    `json:"resource"`
+	Url         string    `json:"url"`
+	Title       string    `json:"title"`
+	Published   time.Time `json:"published"`
+	Description string    `json:"description"`
+	ItemJSON    string    `json:"-"`
 }
 
 func (a Article) String() string {

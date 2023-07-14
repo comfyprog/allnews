@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/comfyprog/allnews/feed"
+	"github.com/comfyprog/allnews/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -173,14 +174,14 @@ func TestGetArticles(t *testing.T) {
 	})
 
 	t.Run("with filter", func(t *testing.T) {
-		retrived, err := storage.GetArticles(ctx, WithFilter("title2"))
+		retrived, err := storage.GetArticles(ctx, server.WithFilter("title2"))
 		assert.Nil(t, err)
 		assert.Len(t, retrived, 1)
 		assert.Equal(t, "title2", retrived[0].Title)
 	})
 
 	t.Run("with date start", func(t *testing.T) {
-		retrived, err := storage.GetArticles(ctx, WithDateStart(time.Now().Add(time.Hour*-26).Format(time.RFC3339)))
+		retrived, err := storage.GetArticles(ctx, server.WithDateStart(time.Now().Add(time.Hour*-26)))
 		assert.Nil(t, err)
 		assert.Len(t, retrived, 3)
 		assert.Equal(t, "title2", retrived[0].Title)
@@ -190,22 +191,22 @@ func TestGetArticles(t *testing.T) {
 
 	t.Run("with date end", func(t *testing.T) {
 		retrived, err := storage.GetArticles(ctx,
-			WithDateStart(time.Now().Add(time.Hour*-26).Format(time.RFC3339)),
-			WithDateEnd(time.Now().Add(time.Hour*-24).Format(time.RFC3339)))
+			server.WithDateStart(time.Now().Add(time.Hour*-26)),
+			server.WithDateEnd(time.Now().Add(time.Hour*-24)))
 		assert.Nil(t, err)
 		assert.Len(t, retrived, 1)
 		assert.Equal(t, "title3", retrived[0].Title)
 	})
 
 	t.Run("with limit", func(t *testing.T) {
-		retrived, err := storage.GetArticles(ctx, WithLimit(1))
+		retrived, err := storage.GetArticles(ctx, server.WithLimit(1))
 		assert.Nil(t, err)
 		assert.Len(t, retrived, 1)
 		assert.Equal(t, "title2", retrived[0].Title)
 	})
 
 	t.Run("with offset", func(t *testing.T) {
-		retrived, err := storage.GetArticles(ctx, WithLimit(1), WithOffset(1))
+		retrived, err := storage.GetArticles(ctx, server.WithLimit(1), server.WithOffset(1))
 		assert.Nil(t, err)
 		assert.Len(t, retrived, 1)
 		assert.Equal(t, "title1", retrived[0].Title)
