@@ -20,7 +20,7 @@ func makeServeCmd(config config.Config) *cobra.Command {
 			if err != nil {
 				log.Fatal(err)
 			}
-			log.Fatal(server.Serve(config.ListenAddr, storage))
+			log.Fatal(server.Serve(storage, config))
 		},
 	}
 

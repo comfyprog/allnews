@@ -27,7 +27,11 @@ func prepareDb() (string, *sql.DB, clearDbFunc, error) {
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:15",
 		ExposedPorts: []string{"5432/tcp"},
-		WaitingFor:   wait.ForListeningPort("5432/tcp"),
+		// WaitingFor:   wait.ForListeningPort("5432/tcp"),
+		WaitingFor: wait.ForAll(
+			wait.ForListeningPort("5432/tcp"),
+			wait.ForLog("database system is ready to accept connections"),
+		),
 		Env: map[string]string{
 			"POSTGRES_PASSWORD": "postgres",
 		},
@@ -210,5 +214,13 @@ func TestGetArticles(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Len(t, retrived, 1)
 		assert.Equal(t, "title1", retrived[0].Title)
+	})
+
+	t.Run("with resource names", func(t *testing.T) {
+		retrived, err := storage.GetArticles(ctx, server.WithResourceNames([]string{"resource2", "resource1"}))
+		assert.Nil(t, err)
+		assert.Len(t, retrived, 2)
+		assert.Equal(t, "title2", retrived[0].Title)
+		assert.Equal(t, "title1", retrived[1].Title)
 	})
 }

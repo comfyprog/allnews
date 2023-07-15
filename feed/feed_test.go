@@ -144,7 +144,6 @@ func TestProcessFeeds(t *testing.T) {
 			FeedUrl:      srv.URL,
 			Timeout:      time.Second,
 			UpdatePeriod: time.Second,
-			Country:      "us",
 		}},
 	}
 
@@ -173,7 +172,6 @@ func TestProcessFeedsContinuously(t *testing.T) {
 			FeedUrl:      srv.URL,
 			Timeout:      time.Second,
 			UpdatePeriod: time.Millisecond * 100,
-			Country:      "us",
 		}},
 	}
 

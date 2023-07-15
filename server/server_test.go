@@ -51,6 +51,15 @@ func TestHealthcheck(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "ping error")
 }
 
+type resourceFinder struct {
+	result []string
+	err    error
+}
+
+func (f *resourceFinder) GetResourcesWithTags(tags []string) ([]string, error) {
+	return f.result, f.err
+}
+
 func TestGetArticles(t *testing.T) {
 	db := &testStorage{getArticlesData: []feed.Article{}}
 	getArticlesData := []feed.Article{
@@ -63,8 +72,11 @@ func TestGetArticles(t *testing.T) {
 			ItemJSON:    "",
 		},
 	}
+
+	finder := resourceFinder{result: []string{"resource1", "resource2"}, err: nil}
+
 	r := gin.Default()
-	r.GET("/articles", handleGetArticles(db))
+	r.GET("/articles", handleGetArticles(db, &finder))
 
 	t.Run("happy path", func(t *testing.T) {
 		db.err = nil
@@ -215,6 +227,64 @@ func TestGetArticles(t *testing.T) {
 		db.getArticlesData = []feed.Article{}
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/articles", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "articles")
+	})
+
+}
+
+func TestGetArticlesWithTags(t *testing.T) {
+	db := &testStorage{getArticlesData: []feed.Article{}}
+	getArticlesData := []feed.Article{
+		{
+			Resource:    "test",
+			Url:         "example.com",
+			Title:       "title1",
+			Published:   time.Now(),
+			Description: "desc1",
+			ItemJSON:    "",
+		},
+	}
+
+	finder := resourceFinder{}
+
+	r := gin.Default()
+	r.GET("/articles", handleGetArticles(db, &finder))
+
+	t.Run("happy path", func(t *testing.T) {
+		finder.result = []string{"resource1", "resource2"}
+		db.err = nil
+		db.getArticlesData = getArticlesData
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/articles?tags[]=tag1:val1&tags[]=tag1:val2&tags[]=tag2:val3", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), "title1")
+	})
+
+	t.Run("tag error", func(t *testing.T) {
+		finder.result = []string{"resource1", "resource2"}
+		finder.err = errors.New("tag error")
+		db.err = nil
+		db.getArticlesData = getArticlesData
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/articles?tags[]=tag1:val1&tags[]=tag1:val2&tags[]=tag2:val3", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "tag error")
+	})
+
+	t.Run("resources not found", func(t *testing.T) {
+		finder.result = []string{}
+		finder.err = nil
+		db.err = nil
+		db.getArticlesData = getArticlesData
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/articles?tags[]=tag1:val1&tags[]=tag1:val2&tags[]=tag2:val3", nil)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)

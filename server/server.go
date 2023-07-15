@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/comfyprog/allnews/config"
 	"github.com/comfyprog/allnews/feed"
 	"github.com/gin-gonic/gin"
 )
@@ -34,17 +35,18 @@ type ArticleSearchParams struct {
 	Filter    string    `form:"filter"`
 	Limit     uint64    `form:"limit" binding:"gte=0"`
 	Offset    uint64    `form:"offset" binding:"gte=0"`
+	Tags      []string  `form:"tags[]"`
+	Resources []string  `form:"-"`
 }
 
 func NewArticleSearchParams() (*ArticleSearchParams, error) {
-	now := time.Now()
-	year, month, day := now.Date()
 	loc, err := time.LoadLocation("UTC")
 	if err != nil {
 		return &ArticleSearchParams{}, err
 	}
-
-	start := time.Date(year, month, day, 0, 0, 0, 0, loc)
+	start := time.Date(1970, 1, 1, 0, 0, 1, 0, loc)
+	now := time.Now()
+	year, month, day := now.Date()
 	end := time.Date(year, month, day, 23, 59, 59, 0, loc)
 
 	return &ArticleSearchParams{
@@ -89,11 +91,21 @@ func WithOffset(offset uint64) GetArticleOption {
 	}
 }
 
+func WithResourceNames(names []string) GetArticleOption {
+	return func(p *ArticleSearchParams) {
+		p.Resources = names
+	}
+}
+
 type ArticleGetter interface {
 	GetArticles(context.Context, ...GetArticleOption) ([]feed.Article, error)
 }
 
-func handleGetArticles(db ArticleGetter) gin.HandlerFunc {
+type TaggedResourcesGetter interface {
+	GetResourcesWithTags([]string) ([]string, error)
+}
+
+func handleGetArticles(db ArticleGetter, config TaggedResourcesGetter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var params ArticleSearchParams
 		if err := c.ShouldBind(&params); err != nil {
@@ -118,6 +130,21 @@ func handleGetArticles(db ArticleGetter) gin.HandlerFunc {
 			options = append(options, WithFilter(params.Filter))
 		}
 
+		if len(params.Tags) > 0 {
+			resourceNames, err := config.GetResourcesWithTags(params.Tags)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+
+			if len(resourceNames) == 0 {
+				c.JSON(http.StatusNotFound, gin.H{"articles": []feed.Article{}})
+				return
+			}
+
+			options = append(options, WithResourceNames(resourceNames))
+		}
+
 		articles, err := db.GetArticles(c.Request.Context(), options...)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -133,22 +160,28 @@ func handleGetArticles(db ArticleGetter) gin.HandlerFunc {
 	}
 }
 
+func handleGetTags(tags map[string][]string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"tags": tags})
+	}
+}
+
 type ServerStorage interface {
 	DbPinger
 	ArticleGetter
 }
 
-func Serve(listenAddr string, db ServerStorage) error {
-
+func Serve(db ServerStorage, config config.Config) error {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	r.GET("/health", handleHealth(db))
 
 	api := r.Group("/api/v1")
-	api.GET("/articles", handleGetArticles(db))
+	api.GET("/articles", handleGetArticles(db, config))
+	api.GET("/tags", handleGetTags(config.GetAllTags()))
 
-	log.Printf("Listening on %s", listenAddr)
+	log.Printf("Listening on %s", config.ListenAddr)
 
-	return r.Run(listenAddr)
+	return r.Run(config.ListenAddr)
 }

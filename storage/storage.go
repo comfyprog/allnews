@@ -76,6 +76,10 @@ func (s *PostgresStorage) GetArticles(ctx context.Context, options ...server.Get
 		builder = builder.Where("title ILIKE ?", fmt.Sprintf("%%%s%%", searchParams.Filter))
 	}
 
+	if len(searchParams.Resources) > 0 {
+		builder = builder.Where(map[string]interface{}{"resource_name": searchParams.Resources})
+	}
+
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return []feed.Article{}, err
