@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -60,7 +59,7 @@ func makeTagStringIntoMap(ts []string) (map[string][]string, error) {
 	for _, s := range ts {
 		splitted := strings.Split(s, ":")
 		if len(splitted) != 2 {
-			return nil, errors.New(fmt.Sprintf("%q has to be in 'tagCategory:tagValue' format", s))
+			return nil, fmt.Errorf("%q has to be in 'tagCategory:tagValue' format", s)
 		}
 		tagCat, tagVal := splitted[0], splitted[1]
 		if _, ok := result[tagCat]; !ok {

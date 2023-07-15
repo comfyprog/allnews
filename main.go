@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/comfyprog/allnews/cmd"
@@ -20,5 +21,9 @@ func main() {
 		panic(err)
 	}
 
-	cmd.Execute(config)
+	err = cmd.Execute(config)
+
+	if err != nil {
+		log.Println(err)
+	}
 }

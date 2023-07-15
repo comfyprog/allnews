@@ -50,11 +50,7 @@ func collect(appConfig config.Config, names []string, dryRun bool, continuous bo
 
 			}
 		}
-		if _, ok := feedGroups[source.Name]; ok {
-			feedGroups[source.Name] = append(feedGroups[source.Name], source)
-		} else {
-			feedGroups[source.Name] = []config.SourceConfig{source}
-		}
+		feedGroups[source.Name] = append(feedGroups[source.Name], source)
 	}
 
 	var articleStorage feed.ArticleSaver
