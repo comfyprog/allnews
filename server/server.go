@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -175,6 +176,12 @@ func Serve(db ServerStorage, config config.Config) error {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
+	r.StaticFS("/static", http.FS(staticFs))
+
+	tmpl := template.Must(template.ParseFS(frontendFs, "*.html"))
+	r.SetHTMLTemplate(tmpl)
+
+	r.GET("/", handleIndexPage())
 	r.GET("/health", handleHealth(db))
 
 	api := r.Group("/api/v1")
