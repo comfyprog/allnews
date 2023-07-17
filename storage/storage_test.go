@@ -172,9 +172,10 @@ func TestGetArticles(t *testing.T) {
 	t.Run("with default params", func(t *testing.T) {
 		retrived, err := storage.GetArticles(ctx)
 		assert.Nil(t, err)
-		assert.Len(t, retrived, 2)
+		assert.Len(t, retrived, 3)
 		assert.Equal(t, "title2", retrived[0].Title)
 		assert.Equal(t, "title1", retrived[1].Title)
+		assert.Equal(t, "title3", retrived[2].Title)
 	})
 
 	t.Run("with filter", func(t *testing.T) {
@@ -223,4 +224,41 @@ func TestGetArticles(t *testing.T) {
 		assert.Equal(t, "title2", retrived[0].Title)
 		assert.Equal(t, "title1", retrived[1].Title)
 	})
+}
+
+func TestGetArticleStats(t *testing.T) {
+	storage, err := NewPostgresStorage(connStr)
+	assert.Nil(t, err)
+
+	err = clearDb()
+	assert.Nil(t, err)
+
+	now := time.Now()
+	articles := []feed.Article{
+		{Resource: "resource1", Url: "google..com", Title: "title1", Published: now, Description: "description1", ItemJSON: "{}"},
+		{Resource: "resource2", Url: "yahoo.com", Title: "title2", Published: now.Add(time.Hour), Description: "description2", ItemJSON: "{}"},
+		{Resource: "resource2", Url: "bing.com", Title: "title3", Published: now.Add(time.Hour * -25), Description: "description3", ItemJSON: "{}"},
+	}
+
+	ctx := context.Background()
+
+	err = storage.SaveArticles(ctx, articles)
+	assert.Nil(t, err)
+
+	stats, err := storage.GetArticleStats(ctx)
+	assert.Nil(t, err)
+
+	utc, err := time.LoadLocation("")
+	assert.Nil(t, err)
+
+	assert.Len(t, stats, 2)
+	assert.Equal(t, "resource1", stats[0].Resource)
+	assert.Equal(t, 1, stats[0].TotalArticles)
+	assert.Less(t, now.In(utc).Sub(stats[0].FirstDate), time.Millisecond)
+	assert.Less(t, now.In(utc).Sub(stats[0].LastDate), time.Millisecond)
+
+	assert.Equal(t, "resource2", stats[1].Resource)
+	assert.Equal(t, 2, stats[1].TotalArticles)
+	assert.Less(t, now.In(utc).Add(time.Hour*-25).Sub(stats[1].FirstDate), time.Millisecond)
+	assert.Less(t, now.In(utc).Add(time.Hour).Sub(stats[1].LastDate), time.Millisecond)
 }

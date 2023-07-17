@@ -16,7 +16,6 @@ listen_addr: "localhost:8000"
 sources:
   - name: site1
     url: site1.com
-    country: USA
     timeout: 10s
     update: 3600s
     tags:
@@ -27,7 +26,6 @@ sources:
 
   - name: site2
     url: site2.com
-    country: UK
     timeout: 20s
     update: 1800s
     tags:

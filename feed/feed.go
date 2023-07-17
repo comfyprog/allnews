@@ -12,6 +12,13 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
+type ArticleStats struct {
+	Resource      string
+	TotalArticles int
+	FirstDate     time.Time
+	LastDate      time.Time
+}
+
 type Article struct {
 	Resource    string    `json:"resource"`
 	Url         string    `json:"url"`

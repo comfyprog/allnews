@@ -109,3 +109,31 @@ func (s *PostgresStorage) GetArticles(ctx context.Context, options ...server.Get
 
 	return result, nil
 }
+
+func (s *PostgresStorage) GetArticleStats(ctx context.Context) ([]feed.ArticleStats, error) {
+	query := `select resource_name, count(*) as total_articles, min(published) as first_date, max(published) as last_date from articles group by resource_name order by resource_name;`
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return []feed.ArticleStats{}, err
+	}
+
+	defer rows.Close()
+
+	result := make([]feed.ArticleStats, 0)
+	for rows.Next() {
+		var a feed.ArticleStats
+		err := rows.Scan(&a.Resource, &a.TotalArticles, &a.FirstDate, &a.LastDate)
+		if err != nil {
+			return result, err
+		}
+
+		result = append(result, a)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
