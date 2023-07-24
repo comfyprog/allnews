@@ -170,24 +170,28 @@ func handleGetTags(tags map[string][]string) gin.HandlerFunc {
 type ServerStorage interface {
 	DbPinger
 	ArticleGetter
+	StatsGetter
 }
 
 func Serve(db ServerStorage, config config.Config) error {
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	r.StaticFS("/static", http.FS(staticFs))
 
-	tmpl := template.Must(template.ParseFS(frontendFs, "*.html"))
+	tmpl := template.Must(template.ParseFS(frontendFs, "templates/*.html"))
 	r.SetHTMLTemplate(tmpl)
 
-	r.GET("/", handleIndexPage())
+	r.GET("/stats", handleStatsPage(db, config.GetAllTags()))
+	r.GET("/search", handleSearchPage())
+	r.GET("/about", handleAboutPage())
 	r.GET("/health", handleHealth(db))
 
 	api := r.Group("/api/v1")
 	api.GET("/articles", handleGetArticles(db, config))
 	api.GET("/tags", handleGetTags(config.GetAllTags()))
 
+	r.GET("/", handleIndexPage())
 	log.Printf("Listening on %s", config.ListenAddr)
 
 	return r.Run(config.ListenAddr)

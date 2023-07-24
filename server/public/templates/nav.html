@@ -1,0 +1,28 @@
+{{ define "nav" }}
+<div class="container">
+	<div class="row">
+		{{ if eq .Url "/" }}
+		<div class="column"><a class="button button-clear button-large" href="/">News</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/search">Search</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/stats">Stats</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/about">About</a></div>
+		{{ else if eq .Url "/search" }}
+		<div class="column"><a class="button button-clear button-large button-black" href="/">News</a></div>
+		<div class="column"><a class="button button-clear button-large" href="/search">Search</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/stats">Stats</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/about">About</a></div>
+		{{ else if eq .Url "/stats" }}
+		<div class="column"><a class="button button-clear button-large button-black" href="/">News</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/search">Search</a></div>
+		<div class="column"><a class="button button-clear button-large" href="/stats">Stats</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/about">About</a></div>
+		{{ else if eq .Url "/about" }}
+		<div class="column"><a class="button button-clear button-large button-black" href="/">News</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/search">Search</a></div>
+		<div class="column"><a class="button button-clear button-large button-black" href="/stats">Stats</a></div>
+		<div class="column"><a class="button button-clear button-large" href="/about">About</a></div>
+		{{ else }}
+		{{ end }}
+	</div>
+</div>
+{{ end }}
