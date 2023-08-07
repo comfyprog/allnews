@@ -2,14 +2,62 @@
 {{ template "page_begin" . }}
 
 <p>
-<h2>Статистика</h2>
+<h2>Allnews stats</h2>
 </p>
 
-<p>
-<h3>Источники</h3>
-</p>
+<div>
+  <p>
+  <h3>News sources</h3>
+  </p>
 
-{{ . }}
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Total articles</th>
+        <th>Earliest article date</th>
+        <th>Latest article date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        {{ range .Resources }}
+        <td>{{ .Resource }}</td>
+        <td>{{ .TotalArticles }}</td>
+        <td>{{ .FirstDate }}</td>
+        <td>{{ .LastDate }}</td>
+        {{ end }}
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div>
+  <p>
+    <h3>Tags</h3>
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tag name</th>
+        <th>Tag values</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range $tagName, $values := .Tags}}
+      <tr>
+        <td>{{ $tagName }}</td>
+        <td>
+          {{ range $values }}
+          {{ . }}<br>
+          {{ end }}
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
 
 {{ template "page_end" . }}
 {{ end }}
